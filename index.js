@@ -64,26 +64,26 @@ function viewEmployees()
 function addDepartment()
 {
     inquirer.prompt(
+    [{
+        type: 'input',
+        name: 'department_name',
+        message: 'What is the name of the new department?',
+        validate: isAnswerBlank,
+    }]).then((answers) =>
+    {
+        db.query(`INSERT INTO DEPARTMENTS (DEPARTMENT_NAME)
+        VALUES ("${answers.department_name}");`, function (err, results)
         {
-            type: 'input',
-            name: 'department_name',
-            message: 'What is the name of the new department?',
-            validate: isAnswerBlank,
-        }).then((answers) =>
-        {
-            db.query(`INSERT INTO DEPARTMENTS (DEPARTMENT_NAME)
-            VALUES ("${answers.department_name}");`, function (err, results)
-            {
-                console.log(`Added ${answers.department_name} to the departments table`)
-                mainMenu();
-            });
+            console.log(`Added ${answers.department_name} to the departments table`)
+            mainMenu();
         });
+    });
 }
 
 function addRole()
 {
     inquirer.prompt(
-    {
+    [{
         type: 'input',
         name: 'role_name',
         message: 'What is the name of the new role?',
@@ -91,13 +91,23 @@ function addRole()
     },
     {
         type: 'input',
+        name: 'salary',
+        message: 'What is the salary amount for this new role?',
+        validate: isAnswerBlank,
+    },
+    {
+        type: 'input',
         name: 'department_id',
         message: 'What is the department ID for this new role?',
         validate: isAnswerBlank,
-    }).then((answers) =>
+    }]).then((answers) =>
     {
-        console.log(answers);
-        mainMenu();
+        db.query(`INSERT INTO ROLES (ROLE_NAME, SALARY, DEPARTMENT_ID)
+        VALUES ("${answers.role_name}", ${answers.salary}, ${answers.department_id});`, function (err, results)
+        {
+            console.log(`Added ${answers.role_name} to the roles table with a salary of ${answers.salary} and department ID of ${answers.department_id}`)
+            mainMenu();
+        });
     });
 }
 
