@@ -22,47 +22,43 @@ const isAnswerBlank = async (input) =>
 
 function viewDepartments()
 {
-    db.query('SELECT * FROM DEPARTMENTS', function (err, results)
+    console.log();
+    db.query('SELECT ID, DEPARTMENT_NAME FROM DEPARTMENTS', function (err, results)
     {
         console.log();
-        var values = [];
-        results.forEach(row =>
-        {
-            values.push({'id' : row.id, 'name' : row.name});
-        });
-        console.log('Departments:');
-        console.table(values);
+        console.log('Departments');
+        console.table(results);
         mainMenu();
     });
 }
 
 function viewRoles()
 {
-    db.query('SELECT * FROM ROLES', function (err, results)
+    console.log();
+    db.query('SELECT ROLES.ID, ROLES.ROLE_NAME, ROLES.SALARY, DEPARTMENTS.DEPARTMENT_NAME FROM ROLES JOIN DEPARTMENTS ON DEPARTMENTS.ID = ROLES.DEPARTMENT_ID', function (err, results)
     {
         console.log();
-        var values = [];
-        results.forEach(row =>
-        {
-            var departmentName = 'null';
-
-            db.query(`SELECT * FROM DEPARTMENTS WHERE id = ${row.department_id}`, function (err, results)
-            {
-                console.log(results[0].name);
-                departmentName = results[0].name;
-            });
-
-            values.push({'id' : row.id,  'department' : departmentName, 'title' : row.title, 'salary' : row.salary});
-        });
         console.log('Roles:');
-        console.table(values);
+        console.table(results);
         mainMenu();
     });
 }
 
 function viewEmployees()
 {
-    
+    console.log();
+    db.query(`SELECT EMPLOYEES.ID, EMPLOYEES.FIRST_NAME, EMPLOYEES.LAST_NAME, ROLES.ROLE_NAME, DEPARTMENTS.DEPARTMENT_NAME, ROLES.SALARY, CONCAT(MANAGER.FIRST_NAME, ' ', MANAGER.LAST_NAME) AS MANAGER
+    FROM EMPLOYEES
+    JOIN ROLES ON ROLES.ID = EMPLOYEES.ROLE_ID
+    JOIN DEPARTMENTS ON DEPARTMENTS.ID = ROLES.DEPARTMENT_ID
+    LEFT JOIN EMPLOYEES AS MANAGER ON MANAGER.ID = EMPLOYEES.MANAGER_ID
+    ORDER BY EMPLOYEES.ID`, function (err, results)
+    {
+        console.log();
+        console.log('Employees:');
+        console.table(results);
+        mainMenu();
+    });
 }
 
 function addDepartment()
@@ -116,7 +112,7 @@ function mainMenu()
                 viewRoles();
                 break;
             case 'View all employees':
-                console.log('3');
+                viewEmployees();
                 break;
             case 'Add a department':
                 console.log('4');
