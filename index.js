@@ -23,7 +23,7 @@ const isAnswerBlank = async (input) =>
 function viewDepartments()
 {
     console.log();
-    db.query('SELECT ID, DEPARTMENT_NAME FROM DEPARTMENTS', function (err, results)
+    db.query('SELECT ID, DEPARTMENT_NAME FROM DEPARTMENTS;', function (err, results)
     {
         console.log();
         console.log('Departments');
@@ -35,7 +35,7 @@ function viewDepartments()
 function viewRoles()
 {
     console.log();
-    db.query('SELECT ROLES.ID, ROLES.ROLE_NAME, ROLES.SALARY, DEPARTMENTS.DEPARTMENT_NAME FROM ROLES JOIN DEPARTMENTS ON DEPARTMENTS.ID = ROLES.DEPARTMENT_ID', function (err, results)
+    db.query('SELECT ROLES.ID, ROLES.ROLE_NAME, ROLES.SALARY, DEPARTMENTS.DEPARTMENT_NAME FROM ROLES JOIN DEPARTMENTS ON DEPARTMENTS.ID = ROLES.DEPARTMENT_ID;', function (err, results)
     {
         console.log();
         console.log('Roles:');
@@ -52,7 +52,7 @@ function viewEmployees()
     JOIN ROLES ON ROLES.ID = EMPLOYEES.ROLE_ID
     JOIN DEPARTMENTS ON DEPARTMENTS.ID = ROLES.DEPARTMENT_ID
     LEFT JOIN EMPLOYEES AS MANAGER ON MANAGER.ID = EMPLOYEES.MANAGER_ID
-    ORDER BY EMPLOYEES.ID`, function (err, results)
+    ORDER BY EMPLOYEES.ID;`, function (err, results)
     {
         console.log();
         console.log('Employees:');
@@ -63,22 +63,54 @@ function viewEmployees()
 
 function addDepartment()
 {
-
+    inquirer.prompt(
+        {
+            type: 'input',
+            name: 'department_name',
+            message: 'What is the name of the new department?',
+            validate: isAnswerBlank,
+        }).then((answers) =>
+        {
+            db.query(`INSERT INTO DEPARTMENTS (DEPARTMENT_NAME)
+            VALUES ("${answers.department_name}");`, function (err, results)
+            {
+                console.log(`Added ${answers.department_name} to the departments table`)
+                mainMenu();
+            });
+        });
 }
 
 function addRole()
 {
-
+    inquirer.prompt(
+    {
+        type: 'input',
+        name: 'role_name',
+        message: 'What is the name of the new role?',
+        validate: isAnswerBlank,
+    },
+    {
+        type: 'input',
+        name: 'department_id',
+        message: 'What is the department ID for this new role?',
+        validate: isAnswerBlank,
+    }).then((answers) =>
+    {
+        console.log(answers);
+        mainMenu();
+    });
 }
 
 function addEmployee()
 {
-
+    console.log('addEmployee()');
+    mainMenu();
 }
 
 function updateRole()
 {
-
+    console.log('updateRole()');
+    mainMenu();
 }
 
 function mainMenu()
@@ -115,22 +147,20 @@ function mainMenu()
                 viewEmployees();
                 break;
             case 'Add a department':
-                console.log('4');
+                addDepartment();
                 break;
             case 'Add a role':
-                console.log('5');
+                addRole();
                 break;
             case 'Add an employee':
-                console.log('6');
+                addEmployee();
                 break;
             case 'Update an employee role':
-                console.log('7');
+                updateRole();
                 break;
             default:
                 console.log('error with response ' + response.menuChoice);
         }
-
-        mainMenu();
     })
 }
 
