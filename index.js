@@ -1,4 +1,3 @@
-const log = require('why-is-node-running');
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
@@ -10,8 +9,7 @@ const db = mysql.createConnection(
         user: 'root',
         password: '',
         database: 'employee_db'
-    },
-    console.log('connected')
+    }
 );
 
 //validator for if an entry was left blank
@@ -21,10 +19,15 @@ const isAnswerBlank = async (input) =>
     else return true;
 }
 
+//function to view all departments
 function viewDepartments()
 {
     console.log();
-    db.query('SELECT ID, DEPARTMENT_NAME FROM DEPARTMENTS;', function (err, results)
+
+    //query to get and sort all department information
+    db.query(`SELECT ID, DEPARTMENT_NAME
+    FROM DEPARTMENTS
+    ORDER BY ID;`, function (err, results)
     {
         console.log();
         console.log('Departments');
@@ -33,10 +36,14 @@ function viewDepartments()
     });
 }
 
+//function to view all roles
 function viewRoles()
 {
-    console.log();
-    db.query('SELECT ROLES.ID, ROLES.ROLE_NAME, ROLES.SALARY, DEPARTMENTS.DEPARTMENT_NAME FROM ROLES JOIN DEPARTMENTS ON DEPARTMENTS.ID = ROLES.DEPARTMENT_ID;', function (err, results)
+    //query to get, format, and sort all role information
+    db.query(`SELECT ROLES.ID, ROLES.ROLE_NAME, ROLES.SALARY, DEPARTMENTS.DEPARTMENT_NAME
+    FROM ROLES
+    JOIN DEPARTMENTS ON DEPARTMENTS.ID = ROLES.DEPARTMENT_ID
+    ORDER BY ROLES.ID;`, function (err, results)
     {
         console.log();
         console.log('Roles:');
@@ -45,9 +52,10 @@ function viewRoles()
     });
 }
 
+//function to view all employees
 function viewEmployees()
 {
-    console.log();
+    //query to get, format, and sort all employee information
     db.query(`SELECT EMPLOYEES.ID, EMPLOYEES.FIRST_NAME, EMPLOYEES.LAST_NAME, ROLES.ROLE_NAME, DEPARTMENTS.DEPARTMENT_NAME, ROLES.SALARY, CONCAT(MANAGER.FIRST_NAME, ' ', MANAGER.LAST_NAME) AS MANAGER
     FROM EMPLOYEES
     JOIN ROLES ON ROLES.ID = EMPLOYEES.ROLE_ID
@@ -62,8 +70,10 @@ function viewEmployees()
     });
 }
 
+//function to add a new department
 function addDepartment()
 {
+    //input to take in the new department information
     inquirer.prompt(
     [{
         type: 'input',
@@ -72,6 +82,7 @@ function addDepartment()
         validate: isAnswerBlank,
     }]).then((answers) =>
     {
+        //query to add new department information
         db.query(`INSERT INTO DEPARTMENTS (DEPARTMENT_NAME)
         VALUES ("${answers.department_name}");`, function (err, results)
         {
@@ -82,10 +93,12 @@ function addDepartment()
     });
 }
 
+//function to add a new role
 function addRole()
 {
     var deps = [];
     var depnames = [];
+
     //get departments
     db.query('SELECT ID, DEPARTMENT_NAME FROM DEPARTMENTS;', function (err, results)
     {
@@ -96,6 +109,7 @@ function addRole()
             depnames.push(element.DEPARTMENT_NAME);
         });
 
+        //input to take in the new role information
         inquirer.prompt(
         [{
             type: 'input',
@@ -117,6 +131,8 @@ function addRole()
         }]).then((answers) =>
         {
             let depid = deps.find(dep => dep.DEPARTMENT_NAME == answers.department_name).ID;
+
+            //query to insert new role information
             db.query(`INSERT INTO ROLES (ROLE_NAME, SALARY, DEPARTMENT_ID)
             VALUES ("${answers.role_name}", ${answers.salary}, ${depid});`, function (err, results)
             {
@@ -128,12 +144,14 @@ function addRole()
     });
 }
 
+//function to add a new employee
 function addEmployee()
 {
     var roles = [];
     var rolenames = [];
     var mngrs = [];
     var mngrnames = [];
+
     //get roles
     db.query('SELECT ID, ROLE_NAME FROM ROLES;', function (err, results)
     {
@@ -152,6 +170,7 @@ function addEmployee()
                 mngrnames.push(`${element.FIRST_NAME} ${element.LAST_NAME}`);
             });
 
+            //input to take in the new employee's information
             inquirer.prompt(
             [{
                 type: 'input',
@@ -182,6 +201,7 @@ function addEmployee()
                 let roleid = roles.find(role => role.ROLE_NAME == answers.role_name).ID;
                 let mngrid = mngrs.filter(mngr => [mngr.FIRST_NAME, mngr.LAST_NAME].join(' ') == answers.manager_name)[0].ID;
         
+                //query to add new employee information
                 db.query(`INSERT INTO EMPLOYEES (FIRST_NAME, LAST_NAME, ROLE_ID, MANAGER_ID)
                 VALUES ("${answers.first_name}", "${answers.last_name}", ${roleid}, ${mngrid || "null"});`, function (err, results)
                 {
@@ -194,6 +214,7 @@ function addEmployee()
     });
 }
 
+//function to update an employee's role
 function updateRole()
 {
     var emps = [];
@@ -219,6 +240,7 @@ function updateRole()
                 rolenames.push(element.ROLE_NAME);
             });
 
+            //input to take in an employee's new role
             inquirer.prompt(
             [{
                 type: 'list',
@@ -236,6 +258,7 @@ function updateRole()
                 let empid = emps.filter(emp => [emp.FIRST_NAME, emp.LAST_NAME].join(' ') == answers.employee_name)[0].ID;
                 let roleid = roles.find(role => role.ROLE_NAME == answers.role_name).ID;
         
+                //query to update employee's role
                 db.query(`UPDATE (EMPLOYEES)
                 SET ROLE_ID = ${roleid} WHERE ID = ${empid};`, function (err, results)
                 {
@@ -248,6 +271,7 @@ function updateRole()
     });
 }
 
+//the main input loop
 function mainMenu()
 {
     inquirer.prompt(
